@@ -3,7 +3,7 @@ const app = express()
 
 const PORT = 3001
 
-const persons = [
+let persons = [
     { 
       "id": 1,
       "name": "Arto Hellas", 
@@ -26,6 +26,42 @@ const persons = [
     }
 ]
 
+/* utensils */
+
+const generateId = () => {
+    return Math.floor(Math.random() * 10000)
+}
+
+/* activate json-parser of express */
+
+app.use(express.json())
+
+/* CREATE */
+
+app.post('/api/persons', (req, res) => {
+    const person = req.body
+    
+    if (!person.name || !person.number) {
+        return res.status(400).json({
+            error: 'content missing',
+        })
+    }
+
+    if (persons.find(p => p.name = person.name)) {
+        return res.status(400).json({
+            error: 'name must be unique',
+        })
+    }
+
+    person.id = generateId()
+
+    persons = persons.concat(person)
+
+    res.json(person)
+})
+
+/* READ */
+
 app.get('/', (req, res) => {
     res.send('<h1>App worked!</h1>')
 })
@@ -47,6 +83,15 @@ app.get('/api/persons/:id', (req, res) => {
     } else {
         res.status(404).end()
     }
+})
+
+/* DELETE */
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id) 
+    persons = persons.filter(p => p.id !== id)
+
+    res.status(204).end()
 })
 
 app.listen(PORT, () => {
