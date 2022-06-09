@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 const PORT = 3001
@@ -32,9 +33,15 @@ const generateId = () => {
     return Math.floor(Math.random() * 10000)
 }
 
-/* activate json-parser of express */
+/* middleware */
 
 app.use(express.json())
+
+morgan.token('body', (req) => {
+    return JSON.stringify(req.body)
+})
+
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 /* CREATE */
 
@@ -47,7 +54,7 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    if (persons.find(p => p.name = person.name)) {
+    if (persons.some(p => p.name === person.name)) {
         return res.status(400).json({
             error: 'name must be unique',
         })
