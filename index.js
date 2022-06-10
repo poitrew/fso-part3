@@ -36,6 +36,7 @@ const generateId = () => {
 
 app.use(express.json())
 app.use(cors())
+app.use(express.static('build'))
 
 morgan.token('body', (req) => {
     return JSON.stringify(req.body)
@@ -69,7 +70,7 @@ app.post('/api/persons', (req, res) => {
 /* READ */
 
 app.get('/', (req, res) => {
-    res.send('<h1>App worked!</h1>')
+
 })
 
 app.get('/info', (req, res) => {
