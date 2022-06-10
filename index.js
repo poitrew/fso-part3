@@ -1,5 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 
 const PORT = 3001
@@ -36,11 +37,11 @@ const generateId = () => {
 /* middleware */
 
 app.use(express.json())
+app.use(cors())
 
 morgan.token('body', (req) => {
     return JSON.stringify(req.body)
 })
-
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 /* CREATE */
