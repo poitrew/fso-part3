@@ -1,43 +1,17 @@
+require('dotenv').config()
 const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
 const app = express()
-
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
-/* utensils */
-
-const generateId = () => {
-    return Math.floor(Math.random() * 10000)
-}
+const Person = require('./models/person')
 
 /* middleware */
 
 app.use(express.json())
-app.use(cors())
 app.use(express.static('build'))
 
+const cors = require('cors')
+app.use(cors())
+
+const morgan = require('morgan')
 morgan.token('body', (req) => {
     return JSON.stringify(req.body)
 })
@@ -46,7 +20,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 /* CREATE */
 
 app.post('/api/persons', (req, res) => {
-    const person = req.body
+    const person = new Person(req.body)
     
     if (!person.name || !person.number) {
         return res.status(400).json({
@@ -54,31 +28,19 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    if (persons.some(p => p.name === person.name)) {
-        return res.status(400).json({
-            error: 'name must be unique',
-        })
-    }
-
-    person.id = generateId()
-
-    persons = persons.concat(person)
-
-    res.json(person)
+    return person.save().then(result => res.json(result))
 })
 
 /* READ */
-
-app.get('/', (req, res) => {
-
-})
 
 app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${new Date()}</p>`)
 })
     
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(result => {
+        res.json(result)
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
