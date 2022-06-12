@@ -22,7 +22,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 
 /* CREATE */
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const person = new Person(req.body)
     
     if (!person.name || !person.number) {
@@ -31,7 +31,9 @@ app.post('/api/persons', (req, res) => {
         })
     }
 
-    return person.save().then(result => res.json(result))
+    person.save()
+        .then(result => res.json(result))
+        .catch(err => next(err))
 })
 
 /* READ */
@@ -61,7 +63,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 /* UPDATE */
 
 app.put('/api/persons/:id', (req, res, next) => {
-    Person.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    Person.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true, context: 'query' })
         .then(updatedPerson => {
             res.json(updatedPerson)
         }).catch(err => next(err))
@@ -79,6 +81,9 @@ const errorHandler = (err, req, res, next) => {
     console.log(err)
     if (err.name === 'CastError') {
         return res.status(400).send({ error: 'malformed id' })
+    }
+    if (err.name === 'ValidationError') {
+        return res.status(400).json({ error: err.message })
     }
 
     next(err)
